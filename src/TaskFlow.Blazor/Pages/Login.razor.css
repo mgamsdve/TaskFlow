@@ -1,0 +1,59 @@
+.auth-stage {
+    min-height: calc(100vh - 140px);
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+}
+
+.auth-card {
+    width: min(430px, 100%);
+    border: 1px solid rgba(14, 72, 90, 0.16);
+    border-radius: 1.1rem;
+    background: linear-gradient(160deg, rgba(255, 253, 246, 0.95), rgba(243, 251, 252, 0.95));
+    box-shadow: 0 18px 50px rgba(7, 47, 66, 0.16);
+    padding: 1.2rem;
+    display: grid;
+    gap: 0.8rem;
+}
+
+.auth-card h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+}
+
+.auth-card p {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+.auth-card form {
+    display: grid;
+    gap: 0.7rem;
+}
+
+.auth-card label {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.84rem;
+}
+
+.auth-submit {
+    margin-top: 0.35rem;
+}
+
+.auth-link {
+    font-size: 0.82rem;
+    color: var(--accent-strong);
+    text-decoration: none;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+.form-error {
+    margin: 0;
+    color: #9e1d3e;
+    font-size: 0.82rem;
+}

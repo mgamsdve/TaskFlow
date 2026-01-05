@@ -1,0 +1,72 @@
+@if (Board is null)
+{
+    <p>Board unavailable.</p>
+}
+else
+{
+    <section class="kanban-scroll">
+        @foreach (var list in Board.Lists.OrderBy(item => item.Position))
+        {
+            <article class="kanban-column"
+                     @ondragover:preventDefault="true"
+                     @ondrop="@(async (_) => await HandleDropAsync(list))">
+                <header class="kanban-head">
+                    <h3>@list.Name</h3>
+                    <span>@list.Cards.Count cards</span>
+                </header>
+
+                <button type="button" class="btn btn-ghost column-create" @onclick="() => OnCreateTaskRequested.InvokeAsync(list.Id)">
+                    + Add task
+                </button>
+
+                <div class="kanban-cards">
+                    @foreach (var card in list.Cards.OrderBy(item => item.Position))
+                    {
+                        <TaskCard Card="card"
+                                  OnEditRequested="OnEditTaskRequested"
+                                  OnDeleteRequested="OnDeleteTaskRequested"
+                                  OnDragStarted="HandleDragStartAsync" />
+                    }
+                </div>
+            </article>
+        }
+    </section>
+}
+
+@code {
+    [Parameter] public BoardDto? Board { get; set; }
+
+    [Parameter] public EventCallback<Guid> OnCreateTaskRequested { get; set; }
+
+    [Parameter] public EventCallback<CardDto> OnEditTaskRequested { get; set; }
+
+    [Parameter] public EventCallback<Guid> OnDeleteTaskRequested { get; set; }
+
+    [Parameter] public EventCallback<TaskMoveRequest> OnTaskMoved { get; set; }
+
+    private Guid? _draggedCardId;
+
+    private Task HandleDragStartAsync(CardDto card)
+    {
+        _draggedCardId = card.Id;
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleDropAsync(ListDto destinationList)
+    {
+        if (!_draggedCardId.HasValue)
+        {
+            return;
+        }
+
+        var moveRequest = new TaskMoveRequest
+        {
+            CardId = _draggedCardId.Value,
+            ToListId = destinationList.Id,
+            Position = destinationList.Cards.Count
+        };
+
+        _draggedCardId = null;
+        await OnTaskMoved.InvokeAsync(moveRequest);
+    }
+}

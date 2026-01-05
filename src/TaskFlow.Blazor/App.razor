@@ -1,0 +1,16 @@
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>TaskFlow | Not Found</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <section class="not-found-state">
+                <h1>Page not found</h1>
+                <p>The route you requested does not exist.</p>
+                <a class="btn btn-primary" href="/dashboard">Go to dashboard</a>
+            </section>
+        </LayoutView>
+    </NotFound>
+</Router>

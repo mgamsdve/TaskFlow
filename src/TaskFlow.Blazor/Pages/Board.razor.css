@@ -1,0 +1,33 @@
+.board-page {
+    display: grid;
+    gap: 0.95rem;
+}
+
+.board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 0.8rem;
+}
+
+.board-header h1 {
+    margin: 0.15rem 0 0;
+    font-family: var(--font-display);
+}
+
+.list-create {
+    display: grid;
+    grid-template-columns: minmax(210px, 1fr) auto;
+    gap: 0.5rem;
+}
+
+@media (max-width: 980px) {
+    .board-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .list-create {
+        grid-template-columns: 1fr;
+    }
+}

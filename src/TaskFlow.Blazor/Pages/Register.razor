@@ -1,0 +1,88 @@
+@page "/register"
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>TaskFlow | Register</PageTitle>
+
+<section class="auth-stage">
+    <article class="auth-card">
+        <h1>Create your workspace</h1>
+        <p>Design your flow with boards inspired by Trello, Notion, and Linear.</p>
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <p class="form-error">@_error</p>
+        }
+
+        <EditForm Model="_model" OnValidSubmit="HandleSubmitAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <label>
+                Full name
+                <InputText @bind-Value="_model.FullName" class="input" />
+            </label>
+
+            <label>
+                Email
+                <InputText @bind-Value="_model.Email" class="input" />
+            </label>
+
+            <label>
+                Password
+                <InputText @bind-Value="_model.Password" type="password" class="input" />
+            </label>
+
+            <label>
+                Role
+                <InputSelect @bind-Value="_model.Role" class="input">
+                    <option value="@UserRole.Owner">Owner</option>
+                    <option value="@UserRole.Admin">Admin</option>
+                    <option value="@UserRole.Member">Member</option>
+                    <option value="@UserRole.Guest">Guest</option>
+                </InputSelect>
+            </label>
+
+            <button class="btn btn-primary auth-submit" disabled="@_submitting">
+                @(_submitting ? "Creating..." : "Register")
+            </button>
+        </EditForm>
+
+        <a class="auth-link" href="/login">Already have an account? Login</a>
+    </article>
+</section>
+
+@code {
+    private readonly RegisterRequest _model = new();
+    private bool _submitting;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+        if (AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/dashboard", forceLoad: false);
+        }
+    }
+
+    private async Task HandleSubmitAsync()
+    {
+        _submitting = true;
+        _error = null;
+
+        try
+        {
+            await AuthService.RegisterAsync(_model);
+            Navigation.NavigateTo("/dashboard", forceLoad: false);
+        }
+        catch (Exception exception)
+        {
+            _error = exception.Message;
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+}

@@ -1,0 +1,200 @@
+@if (IsOpen)
+{
+    <div class="task-modal-overlay" @onclick="HandleCloseAsync">
+        <section class="task-modal" @onclick:stopPropagation="true">
+            <header class="task-modal-head">
+                <h3>@(IsEditMode ? "Edit Task" : "Create Task")</h3>
+                <button type="button" class="task-modal-close" @onclick="HandleCloseAsync">Close</button>
+            </header>
+
+            @if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                <p class="task-modal-error">@_errorMessage</p>
+            }
+
+            <form class="task-modal-form" @onsubmit="HandleSubmitAsync">
+                <label>
+                    Title
+                    <input class="input" @bind="_title" maxlength="200" />
+                </label>
+
+                <label>
+                    Description
+                    <textarea class="input" @bind="_description" maxlength="2000"></textarea>
+                </label>
+
+                <div class="task-modal-grid">
+                    <label>
+                        Priority
+                        <select class="input" @bind="_priority">
+                            @foreach (var priority in Enum.GetValues<TaskPriority>())
+                            {
+                                <option value="@priority">@priority</option>
+                            }
+                        </select>
+                    </label>
+
+                    <label>
+                        List
+                        <select class="input" @bind="_selectedListId">
+                            @foreach (var list in Lists.OrderBy(item => item.Position))
+                            {
+                                <option value="@list.Id">@list.Name</option>
+                            }
+                        </select>
+                    </label>
+                </div>
+
+                <div class="task-modal-grid">
+                    <label>
+                        Position
+                        <input class="input" type="number" min="0" @bind="_position" />
+                    </label>
+
+                    <label>
+                        Due date
+                        <input class="input"
+                               type="datetime-local"
+                               value="@_dueDateLocal"
+                               @oninput="OnDueDateInputChanged" />
+                    </label>
+                </div>
+
+                <div class="task-modal-actions">
+                    <button type="button" class="btn btn-ghost" @onclick="HandleCloseAsync">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+
+    [Parameter] public bool IsEditMode { get; set; }
+
+    [Parameter] public CardDto? Card { get; set; }
+
+    [Parameter] public Guid DefaultListId { get; set; }
+
+    [Parameter] public IReadOnlyCollection<ListDto> Lists { get; set; } = [];
+
+    [Parameter] public EventCallback<TaskModalSubmit> OnSubmit { get; set; }
+
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private string _title = string.Empty;
+    private string? _description;
+    private TaskPriority _priority = TaskPriority.Medium;
+    private int _position;
+    private Guid _selectedListId;
+    private string? _dueDateLocal;
+    private string? _errorMessage;
+
+    protected override void OnParametersSet()
+    {
+        if (!IsOpen)
+        {
+            return;
+        }
+
+        if (IsEditMode && Card is not null)
+        {
+            _title = Card.Title;
+            _description = Card.Description;
+            _priority = Card.Priority;
+            _position = Card.Position;
+            _selectedListId = Card.ListId;
+            _dueDateLocal = Card.DueDateUtc?.ToLocalTime().ToString("yyyy-MM-ddTHH:mm");
+        }
+        else
+        {
+            _title = string.Empty;
+            _description = null;
+            _priority = TaskPriority.Medium;
+            _position = 0;
+            _selectedListId = DefaultListId;
+            _dueDateLocal = null;
+        }
+
+        _errorMessage = null;
+    }
+
+    private async Task HandleSubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_title))
+        {
+            _errorMessage = "Title is required.";
+            return;
+        }
+
+        var dueDateUtc = ParseDueDateAsUtc(_dueDateLocal);
+
+        if (IsEditMode && Card is not null)
+        {
+            var updateRequest = new UpdateCardRequest
+            {
+                Title = _title,
+                Description = string.IsNullOrWhiteSpace(_description) ? null : _description,
+                ClearDescription = string.IsNullOrWhiteSpace(_description),
+                Priority = _priority,
+                DueDateUtc = dueDateUtc,
+                ClearDueDate = dueDateUtc is null,
+                Position = Math.Max(_position, 0),
+                ListId = _selectedListId
+            };
+
+            await OnSubmit.InvokeAsync(new TaskModalSubmit
+            {
+                IsEditMode = true,
+                CardId = Card.Id,
+                UpdateRequest = updateRequest
+            });
+
+            return;
+        }
+
+        var createRequest = new CreateCardRequest
+        {
+            ListId = _selectedListId,
+            Title = _title,
+            Description = string.IsNullOrWhiteSpace(_description) ? null : _description,
+            Priority = _priority,
+            Position = Math.Max(_position, 0),
+            DueDateUtc = dueDateUtc
+        };
+
+        await OnSubmit.InvokeAsync(new TaskModalSubmit
+        {
+            IsEditMode = false,
+            CreateRequest = createRequest
+        });
+    }
+
+    private Task HandleCloseAsync()
+    {
+        return OnClose.InvokeAsync();
+    }
+
+    private static DateTime? ParseDueDateAsUtc(string? dueDateLocal)
+    {
+        if (string.IsNullOrWhiteSpace(dueDateLocal))
+        {
+            return null;
+        }
+
+        if (!DateTime.TryParse(dueDateLocal, out var parsedLocal))
+        {
+            return null;
+        }
+
+        var localWithKind = DateTime.SpecifyKind(parsedLocal, DateTimeKind.Local);
+        return localWithKind.ToUniversalTime();
+    }
+
+    private void OnDueDateInputChanged(ChangeEventArgs eventArgs)
+    {
+        _dueDateLocal = eventArgs.Value?.ToString();
+    }
+}

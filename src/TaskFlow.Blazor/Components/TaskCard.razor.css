@@ -1,0 +1,90 @@
+.task-card {
+    border: 1px solid rgba(13, 71, 90, 0.12);
+    border-radius: 0.9rem;
+    background: linear-gradient(160deg, #fffdf9, #f5f8fa);
+    padding: 0.75rem;
+    display: grid;
+    gap: 0.6rem;
+    box-shadow: 0 8px 22px rgba(14, 52, 66, 0.08);
+    cursor: grab;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.task-card:active {
+    cursor: grabbing;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(14, 52, 66, 0.16);
+}
+
+.task-head,
+.task-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.task-title {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.task-description {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.priority-tag {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.22rem 0.55rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.priority-tag.low {
+    background: rgba(10, 123, 115, 0.14);
+    color: #0a7b73;
+}
+
+.priority-tag.medium {
+    background: rgba(16, 87, 143, 0.14);
+    color: #10578f;
+}
+
+.priority-tag.high {
+    background: rgba(231, 122, 35, 0.16);
+    color: #bf5d10;
+}
+
+.priority-tag.critical {
+    background: rgba(192, 42, 66, 0.15);
+    color: #b81f3f;
+}
+
+.task-action,
+.task-delete {
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.73rem;
+    cursor: pointer;
+}
+
+.task-action:hover,
+.task-delete:hover {
+    color: var(--text-primary);
+}
+
+.task-meta small {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}

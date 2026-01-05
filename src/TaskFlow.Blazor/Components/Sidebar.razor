@@ -1,0 +1,58 @@
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<aside class="sidebar-shell">
+    <div class="brand-block">
+        <div class="brand-mark">TF</div>
+        <div>
+            <h1 class="brand-title">TaskFlow</h1>
+            <p class="brand-subtitle">Execution Workspace</p>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <NavLink href="/dashboard" Match="NavLinkMatch.Prefix" class="nav-chip">Dashboard</NavLink>
+        <NavLink href="/projects" Match="NavLinkMatch.Prefix" class="nav-chip">Projects</NavLink>
+    </nav>
+
+    <section class="sidebar-meta">
+        @if (AuthService.IsAuthenticated && AuthService.CurrentUser is not null)
+        {
+            <p class="meta-user">@AuthService.CurrentUser.FullName</p>
+            <p class="meta-role">@AuthService.CurrentUser.Role</p>
+            <button class="btn btn-ghost" @onclick="LogoutAsync">Sign out</button>
+        }
+        else
+        {
+            <p class="meta-guest">Sign in to access your boards.</p>
+            <div class="auth-links">
+                <a class="btn btn-ghost" href="/login">Login</a>
+                <a class="btn btn-primary" href="/register">Register</a>
+            </div>
+        }
+    </section>
+</aside>
+
+@code {
+    protected override void OnInitialized()
+    {
+        AuthService.AuthStateChanged += HandleAuthChanged;
+    }
+
+    private async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: false);
+    }
+
+    private void HandleAuthChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AuthService.AuthStateChanged -= HandleAuthChanged;
+    }
+}

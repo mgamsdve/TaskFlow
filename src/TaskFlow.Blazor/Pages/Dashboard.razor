@@ -1,0 +1,108 @@
+@page "/"
+@page "/dashboard"
+@inject AuthService AuthService
+@inject ProjectApiService ProjectApiService
+@inject NavigationManager Navigation
+
+<PageTitle>TaskFlow | Dashboard</PageTitle>
+
+@if (_loading)
+{
+    <section class="page-state"><p>Loading workspace metrics...</p></section>
+}
+else if (!string.IsNullOrWhiteSpace(_error))
+{
+    <section class="page-state"><p class="form-error">@_error</p></section>
+}
+else
+{
+    <section class="dashboard-grid">
+        <header class="dashboard-hero">
+            <p class="eyebrow">Workspace overview</p>
+            <h1>Focus where momentum is highest.</h1>
+            <p>Track projects, board activity, and card volume in one place.</p>
+        </header>
+
+        <article class="metric-card">
+            <p>Total projects</p>
+            <h2>@_projects.Count</h2>
+        </article>
+
+        <article class="metric-card">
+            <p>Total boards</p>
+            <h2>@_projects.Sum(project => project.Boards.Count)</h2>
+        </article>
+
+        <article class="metric-card">
+            <p>Total cards</p>
+            <h2>@_projects.Sum(project => project.Boards.Sum(board => board.Lists.Sum(list => list.Cards.Count)))</h2>
+        </article>
+
+        <article class="dashboard-listing">
+            <header>
+                <h3>Recent projects</h3>
+                <a class="btn btn-ghost" href="/projects">Manage</a>
+            </header>
+
+            @if (_projects.Count == 0)
+            {
+                <p class="muted">No projects available yet.</p>
+            }
+            else
+            {
+                @foreach (var project in _projects.Take(5))
+                {
+                    <div class="project-item">
+                        <div>
+                            <strong>@project.Name</strong>
+                            <small>@project.Boards.Count boards</small>
+                        </div>
+
+                        @if (project.Boards.Count > 0)
+                        {
+                            <a class="btn btn-primary" href="@($"/board/{project.Boards[0].Id}")">Open board</a>
+                        }
+                    </div>
+                }
+            }
+        </article>
+    </section>
+}
+
+@code {
+    private List<ProjectDto> _projects = [];
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", forceLoad: false);
+            return;
+        }
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+
+        try
+        {
+            _projects = (await ProjectApiService.GetProjectsAsync()).ToList();
+        }
+        catch (Exception exception)
+        {
+            _error = exception.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

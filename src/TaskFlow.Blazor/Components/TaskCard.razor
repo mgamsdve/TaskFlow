@@ -1,0 +1,39 @@
+<article class="task-card" draggable="true" @ondragstart="HandleDragStartAsync">
+    <header class="task-head">
+        <span class="priority-tag @Card.Priority.ToString().ToLowerInvariant()">@Card.Priority</span>
+        <button type="button" class="task-action" @onclick="() => OnEditRequested.InvokeAsync(Card)">Edit</button>
+    </header>
+
+    <h4 class="task-title">@Card.Title</h4>
+
+    @if (!string.IsNullOrWhiteSpace(Card.Description))
+    {
+        <p class="task-description">@Card.Description</p>
+    }
+
+    <footer class="task-meta">
+        <small>Comments: @Card.Comments.Count</small>
+
+        @if (Card.DueDateUtc.HasValue)
+        {
+            <small>Due @Card.DueDateUtc.Value.ToLocalTime().ToString("dd MMM")</small>
+        }
+
+        <button type="button" class="task-delete" @onclick="() => OnDeleteRequested.InvokeAsync(Card.Id)">Delete</button>
+    </footer>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public CardDto Card { get; set; } = new();
+
+    [Parameter] public EventCallback<CardDto> OnEditRequested { get; set; }
+
+    [Parameter] public EventCallback<Guid> OnDeleteRequested { get; set; }
+
+    [Parameter] public EventCallback<CardDto> OnDragStarted { get; set; }
+
+    private Task HandleDragStartAsync(DragEventArgs _)
+    {
+        return OnDragStarted.InvokeAsync(Card);
+    }
+}

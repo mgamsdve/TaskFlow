@@ -1,0 +1,73 @@
+@page "/login"
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>TaskFlow | Login</PageTitle>
+
+<section class="auth-stage">
+    <article class="auth-card">
+        <h1>Welcome back</h1>
+        <p>Plan, prioritize, and ship work without losing context.</p>
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <p class="form-error">@_error</p>
+        }
+
+        <EditForm Model="_model" OnValidSubmit="HandleSubmitAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <label>
+                Email
+                <InputText @bind-Value="_model.Email" class="input" />
+            </label>
+
+            <label>
+                Password
+                <InputText @bind-Value="_model.Password" type="password" class="input" />
+            </label>
+
+            <button class="btn btn-primary auth-submit" disabled="@_submitting">
+                @(_submitting ? "Signing in..." : "Login")
+            </button>
+        </EditForm>
+
+        <a class="auth-link" href="/register">Need an account? Register</a>
+    </article>
+</section>
+
+@code {
+    private readonly LoginRequest _model = new();
+    private bool _submitting;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+        if (AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/dashboard", forceLoad: false);
+        }
+    }
+
+    private async Task HandleSubmitAsync()
+    {
+        _submitting = true;
+        _error = null;
+
+        try
+        {
+            await AuthService.LoginAsync(_model);
+            Navigation.NavigateTo("/dashboard", forceLoad: false);
+        }
+        catch (Exception exception)
+        {
+            _error = exception.Message;
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+}

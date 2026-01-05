@@ -1,0 +1,73 @@
+.task-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 25, 34, 0.45);
+    backdrop-filter: blur(2px);
+    display: grid;
+    place-items: center;
+    z-index: 40;
+}
+
+.task-modal {
+    width: min(580px, calc(100vw - 1.5rem));
+    border-radius: 1rem;
+    border: 1px solid rgba(10, 53, 77, 0.22);
+    background: #fbf7f0;
+    box-shadow: 0 26px 70px rgba(12, 45, 65, 0.35);
+    padding: 1rem;
+    display: grid;
+    gap: 0.9rem;
+}
+
+.task-modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-modal-head h3 {
+    margin: 0;
+    font-family: var(--font-display);
+}
+
+.task-modal-close {
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.task-modal-form {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.task-modal-form label {
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.84rem;
+}
+
+.task-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.task-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+}
+
+.task-modal-error {
+    margin: 0;
+    color: #9e1d3e;
+    font-size: 0.82rem;
+}
+
+@media (max-width: 720px) {
+    .task-modal-grid {
+        grid-template-columns: 1fr;
+    }
+}

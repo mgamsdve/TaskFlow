@@ -1,0 +1,203 @@
+@page "/board/{BoardId:guid}"
+@inject AuthService AuthService
+@inject BoardApiService BoardApiService
+@inject TaskApiService TaskApiService
+@inject NavigationManager Navigation
+
+<PageTitle>TaskFlow | Board</PageTitle>
+
+@if (_loading)
+{
+    <section class="page-state"><p>Loading board...</p></section>
+}
+else if (!string.IsNullOrWhiteSpace(_error))
+{
+    <section class="page-state"><p class="form-error">@_error</p></section>
+}
+else if (_board is null)
+{
+    <section class="page-state"><p>Board not found.</p></section>
+}
+else
+{
+    <section class="board-page">
+        <header class="board-header">
+            <div>
+                <p class="eyebrow">Board</p>
+                <h1>@_board.Name</h1>
+            </div>
+
+            <form class="list-create" @onsubmit="CreateListAsync">
+                <input class="input" @bind="_newListName" placeholder="New column name" />
+                <button type="submit" class="btn btn-primary">Add list</button>
+            </form>
+        </header>
+
+        <KanbanBoard Board="_board"
+                     OnCreateTaskRequested="OpenCreateTaskModal"
+                     OnEditTaskRequested="OpenEditTaskModal"
+                     OnDeleteTaskRequested="DeleteTaskAsync"
+                     OnTaskMoved="MoveTaskAsync" />
+
+        <TaskModal IsOpen="_taskModalOpen"
+                   IsEditMode="@(_editingCard is not null)"
+                   Card="_editingCard"
+                   DefaultListId="_activeListId"
+                   Lists="_board.Lists"
+                   OnSubmit="SubmitTaskModalAsync"
+                   OnClose="CloseTaskModalAsync" />
+    </section>
+}
+
+@code {
+    [Parameter] public Guid BoardId { get; set; }
+
+    private BoardDto? _board;
+    private bool _loading = true;
+    private string? _error;
+
+    private bool _taskModalOpen;
+    private CardDto? _editingCard;
+    private Guid _activeListId;
+
+    private string _newListName = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await AuthService.InitializeAsync();
+
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", forceLoad: false);
+            return;
+        }
+
+        await LoadBoardAsync();
+    }
+
+    private async Task LoadBoardAsync()
+    {
+        _loading = true;
+        _error = null;
+
+        try
+        {
+            _board = await BoardApiService.GetBoardAsync(BoardId);
+        }
+        catch (Exception exception)
+        {
+            _error = exception.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private Task OpenCreateTaskModal(Guid listId)
+    {
+        _editingCard = null;
+        _activeListId = listId;
+        _taskModalOpen = true;
+        return Task.CompletedTask;
+    }
+
+    private Task OpenEditTaskModal(CardDto card)
+    {
+        _editingCard = card;
+        _activeListId = card.ListId;
+        _taskModalOpen = true;
+        return Task.CompletedTask;
+    }
+
+    private Task CloseTaskModalAsync()
+    {
+        _taskModalOpen = false;
+        _editingCard = null;
+        return Task.CompletedTask;
+    }
+
+    private async Task SubmitTaskModalAsync(TaskModalSubmit payload)
+    {
+        try
+        {
+            if (payload.IsEditMode)
+            {
+                if (!payload.CardId.HasValue || payload.UpdateRequest is null)
+                {
+                    return;
+                }
+
+                await TaskApiService.UpdateTaskAsync(payload.CardId.Value, payload.UpdateRequest);
+            }
+            else
+            {
+                if (payload.CreateRequest is null)
+                {
+                    return;
+                }
+
+                await TaskApiService.CreateTaskAsync(payload.CreateRequest);
+            }
+
+            _taskModalOpen = false;
+            _editingCard = null;
+            await LoadBoardAsync();
+        }
+        catch (Exception exception)
+        {
+            _error = exception.Message;
+        }
+    }
+
+    private async Task MoveTaskAsync(TaskMoveRequest request)
+    {
+        try
+        {
+            await TaskApiService.MoveTaskAsync(request.CardId, request.ToListId, request.Position);
+            await LoadBoardAsync();
+        }
+        catch (Exception exception)
+        {
+            _error = exception.Message;
+        }
+    }
+
+    private async Task DeleteTaskAsync(Guid cardId)
+    {
+        try
+        {
+            await TaskApiService.DeleteTaskAsync(cardId);
+            await LoadBoardAsync();
+        }
+        catch (Exception exception)
+        {
+            _error = exception.Message;
+        }
+    }
+
+    private async Task CreateListAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newListName) || _board is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await BoardApiService.CreateListAsync(new CreateListRequest
+            {
+                BoardId = _board.Id,
+                Name = _newListName,
+                Position = _board.Lists.Count
+            });
+
+            _newListName = string.Empty;
+            await LoadBoardAsync();
+        }
+        catch (Exception exception)
+        {
+            _error = exception.Message;
+        }
+    }
+}

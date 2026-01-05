@@ -1,0 +1,50 @@
+# Build folders
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / VSCode
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# Node modules (si frontend tools)
+node_modules/
+
+# .NET publish output
+publish/
+
+# Test results
+TestResults/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+
+# Local database
+*.db
+
+# Docker
+docker-data/
+
+# ASP.NET secrets
+secrets.json
+
+# Mac temp
+*.swp
+*.swo
+fake-history.sh

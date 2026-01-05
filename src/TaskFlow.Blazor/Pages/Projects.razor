@@ -1,0 +1,202 @@
+@page "/projects"
+@inject AuthService AuthService
+@inject ProjectApiService ProjectApiService
+@inject BoardApiService BoardApiService
+@inject NavigationManager Navigation
+
+<PageTitle>TaskFlow | Projects</PageTitle>
+
+<section class="project-page">
+    <header class="project-header">
+        <h1>Projects</h1>
+        <p>Organize delivery streams and open boards instantly.</p>
+    </header>
+
+    <article class="project-create">
+        <h2>Create project</h2>
+
+        @if (!string.IsNullOrWhiteSpace(_feedback))
+        {
+            <p class="form-error">@_feedback</p>
+        }
+
+        <form @onsubmit="CreateProjectAsync" class="project-form">
+            <label>
+                Organization ID
+                <input class="input" @bind="_organizationIdInput" placeholder="Existing organization Guid" />
+                <small class="muted">Default for local dev: 11111111-1111-1111-1111-111111111111</small>
+            </label>
+
+            <label>
+                Name
+                <input class="input" @bind="_newProjectName" maxlength="200" />
+            </label>
+
+            <label>
+                Description
+                <textarea class="input" @bind="_newProjectDescription" maxlength="1000"></textarea>
+            </label>
+
+            <button type="submit" class="btn btn-primary">Create project</button>
+        </form>
+    </article>
+
+    @if (_loading)
+    {
+        <section class="page-state"><p>Loading projects...</p></section>
+    }
+    else
+    {
+        <section class="project-grid">
+            @foreach (var project in _projects)
+            {
+                <article class="project-card">
+                    <h3>@project.Name</h3>
+                    <p>@project.Description</p>
+
+                    <div class="board-list">
+                        @if (project.Boards.Count == 0)
+                        {
+                            <p class="muted">No boards yet.</p>
+                        }
+                        else
+                        {
+                            @foreach (var board in project.Boards.OrderBy(item => item.Position))
+                            {
+                                <a class="board-link" href="@($"/board/{board.Id}")">@board.Name</a>
+                            }
+                        }
+                    </div>
+
+                    <form @onsubmit="(eventArgs) => CreateBoardAsync(eventArgs, project.Id)" class="board-form">
+                        <input class="input"
+                               value="@GetBoardName(project.Id)"
+                               @oninput="eventArgs => SetBoardName(project.Id, eventArgs.Value?.ToString() ?? string.Empty)"
+                               placeholder="New board name" />
+                        <button type="submit" class="btn btn-ghost">Add board</button>
+                    </form>
+                </article>
+            }
+        </section>
+    }
+</section>
+
+@code {
+    private readonly List<ProjectDto> _projects = [];
+    private readonly Dictionary<Guid, string> _boardNameByProjectId = [];
+    private bool _loading = true;
+    private string? _feedback;
+
+    private string _organizationIdInput = "11111111-1111-1111-1111-111111111111";
+    private string _newProjectName = string.Empty;
+    private string? _newProjectDescription;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", forceLoad: false);
+            return;
+        }
+
+        await LoadProjectsAsync();
+    }
+
+    private async Task LoadProjectsAsync()
+    {
+        _loading = true;
+
+        try
+        {
+            _projects.Clear();
+            _projects.AddRange(await ProjectApiService.GetProjectsAsync());
+        }
+        catch (Exception exception)
+        {
+            _feedback = exception.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task CreateProjectAsync()
+    {
+        _feedback = null;
+
+        if (!Guid.TryParse(_organizationIdInput, out var organizationId))
+        {
+            _feedback = "Organization ID must be a valid Guid.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_newProjectName))
+        {
+            _feedback = "Project name is required.";
+            return;
+        }
+
+        try
+        {
+            await ProjectApiService.CreateProjectAsync(new CreateProjectRequest
+            {
+                OrganizationId = organizationId,
+                Name = _newProjectName,
+                Description = _newProjectDescription
+            });
+
+            _newProjectName = string.Empty;
+            _newProjectDescription = null;
+
+            await LoadProjectsAsync();
+        }
+        catch (Exception exception)
+        {
+            _feedback = exception.Message;
+        }
+    }
+
+    private async Task CreateBoardAsync(EventArgs _, Guid projectId)
+    {
+        _feedback = null;
+
+        var boardName = GetBoardName(projectId);
+        if (string.IsNullOrWhiteSpace(boardName))
+        {
+            _feedback = "Board name is required.";
+            return;
+        }
+
+        try
+        {
+            await BoardApiService.CreateBoardAsync(new CreateBoardRequest
+            {
+                ProjectId = projectId,
+                Name = boardName,
+                Position = _projects.First(project => project.Id == projectId).Boards.Count
+            });
+
+            _boardNameByProjectId[projectId] = string.Empty;
+            await LoadProjectsAsync();
+        }
+        catch (Exception exception)
+        {
+            _feedback = exception.Message;
+        }
+    }
+
+    private string GetBoardName(Guid projectId)
+    {
+        return _boardNameByProjectId.TryGetValue(projectId, out var value)
+            ? value
+            : string.Empty;
+    }
+
+    private void SetBoardName(Guid projectId, string value)
+    {
+        _boardNameByProjectId[projectId] = value;
+    }
+}

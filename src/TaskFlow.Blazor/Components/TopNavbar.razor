@@ -1,0 +1,65 @@
+@inject NavigationManager Navigation
+@inject AuthService AuthService
+@implements IDisposable
+
+<header class="top-navbar">
+    <div>
+        <p class="top-path">@GetPathLabel()</p>
+        <h2 class="top-title">Command Center</h2>
+    </div>
+
+    <div class="top-actions">
+        @if (AuthService.IsAuthenticated && AuthService.CurrentUser is not null)
+        {
+            <span class="user-pill">@GetInitials(AuthService.CurrentUser.FullName)</span>
+            <div class="user-copy">
+                <strong>@AuthService.CurrentUser.FullName</strong>
+                <small>@AuthService.CurrentUser.Email</small>
+            </div>
+        }
+    </div>
+</header>
+
+@code {
+    protected override void OnInitialized()
+    {
+        AuthService.AuthStateChanged += HandleAuthChanged;
+    }
+
+    private string GetPathLabel()
+    {
+        var path = Navigation.ToBaseRelativePath(Navigation.Uri);
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return "Dashboard";
+        }
+
+        return path.Replace('/', ' ').Trim();
+    }
+
+    private static string GetInitials(string fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+        {
+            return "TF";
+        }
+
+        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length == 1)
+        {
+            return parts[0][..1].ToUpperInvariant();
+        }
+
+        return string.Concat(parts[0][..1], parts[^1][..1]).ToUpperInvariant();
+    }
+
+    private void HandleAuthChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AuthService.AuthStateChanged -= HandleAuthChanged;
+    }
+}
