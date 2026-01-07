@@ -37,3 +37,4 @@
 // docs: add project documentation
 // chore: initialize solution structure
 // feat: add domain entities
+// feat: add base entity and value objects
