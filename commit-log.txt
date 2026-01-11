@@ -39,3 +39,4 @@
 // feat: add domain entities
 // feat: add base entity and value objects
 // feat: implement project aggregate
+// feat: add application DTOs
