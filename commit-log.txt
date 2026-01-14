@@ -41,3 +41,4 @@
 // feat: implement project aggregate
 // feat: add application DTOs
 // feat: implement project service
+// feat: add commands and queries
