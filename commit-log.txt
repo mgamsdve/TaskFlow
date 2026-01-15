@@ -42,3 +42,4 @@
 // feat: add application DTOs
 // feat: implement project service
 // feat: add commands and queries
+// feat: add fluent validation rules
