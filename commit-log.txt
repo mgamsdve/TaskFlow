@@ -46,3 +46,4 @@
 // feat: implement EF Core persistence
 // feat: add repository implementations
 // feat: configure DbContext
+// fix: repository dependency injection
