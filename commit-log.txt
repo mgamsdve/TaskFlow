@@ -48,3 +48,4 @@
 // feat: configure DbContext
 // fix: repository dependency injection
 // feat: add authentication services
+// feat: implement JWT authentication
