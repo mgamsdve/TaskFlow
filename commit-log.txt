@@ -51,3 +51,4 @@
 // feat: implement JWT authentication
 // feat: add user identity models
 // feat: create API controllers
+// feat: add project endpoints
