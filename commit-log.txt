@@ -52,3 +52,4 @@
 // feat: add user identity models
 // feat: create API controllers
 // feat: add project endpoints
+// feat: add board endpoints
