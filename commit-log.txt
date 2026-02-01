@@ -53,3 +53,4 @@
 // feat: create API controllers
 // feat: add project endpoints
 // feat: add board endpoints
+// feat: implement card management API
