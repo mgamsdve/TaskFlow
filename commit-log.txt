@@ -54,3 +54,4 @@
 // feat: add project endpoints
 // feat: add board endpoints
 // feat: implement card management API
+// feat: add comment endpoints
