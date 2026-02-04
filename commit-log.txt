@@ -55,3 +55,4 @@
 // feat: add board endpoints
 // feat: implement card management API
 // feat: add comment endpoints
+// fix: validation bug in project creation
