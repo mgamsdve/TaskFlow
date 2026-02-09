@@ -57,3 +57,4 @@
 // feat: add comment endpoints
 // fix: validation bug in project creation
 // feat: initialize blazor frontend
+// feat: add dashboard layout
