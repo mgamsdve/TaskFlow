@@ -60,3 +60,4 @@
 // feat: add dashboard layout
 // feat: implement project list UI
 // feat: implement board UI
+// feat: add kanban components
