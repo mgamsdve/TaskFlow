@@ -62,3 +62,4 @@
 // feat: implement board UI
 // feat: add kanban components
 // feat: implement drag and drop cards
+// fix: kanban rendering issue
