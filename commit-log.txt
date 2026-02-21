@@ -64,3 +64,4 @@
 // feat: implement drag and drop cards
 // fix: kanban rendering issue
 // feat: integrate API with frontend
+// feat: add authentication flow
