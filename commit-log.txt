@@ -65,3 +65,4 @@
 // fix: kanban rendering issue
 // feat: integrate API with frontend
 // feat: add authentication flow
+// feat: add integration tests
