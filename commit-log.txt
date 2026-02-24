@@ -66,3 +66,4 @@
 // feat: integrate API with frontend
 // feat: add authentication flow
 // feat: add integration tests
+// feat: add unit tests
