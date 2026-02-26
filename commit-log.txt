@@ -67,3 +67,4 @@
 // feat: add authentication flow
 // feat: add integration tests
 // feat: add unit tests
+// feat: add docker configuration
