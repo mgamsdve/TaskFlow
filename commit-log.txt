@@ -68,3 +68,4 @@
 // feat: add integration tests
 // feat: add unit tests
 // feat: add docker configuration
+// chore: update docker compose services
