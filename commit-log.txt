@@ -69,3 +69,4 @@
 // feat: add unit tests
 // feat: add docker configuration
 // chore: update docker compose services
+// feat: improve error middleware
