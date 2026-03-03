@@ -71,3 +71,4 @@
 // chore: update docker compose services
 // feat: improve error middleware
 // fix: authentication token validation
+// docs: add project documentation
